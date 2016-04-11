@@ -61,7 +61,7 @@ describe('Cycle.js Cookie driver', function() {
                 const setNewValue$ = Rx.Observable.just({
                     key: 'MyCookie',
                     value: 'new-value'
-                }).delay(50);
+                }).delay(10);
 
                 simple.mock(cookie, 'get', (key) => {
                     assert.strictEqual(key, 'MyCookie');
@@ -90,10 +90,23 @@ describe('Cycle.js Cookie driver', function() {
                             cookieGetCounter++;
                             assert.strictEqual(cookieGetCounter, 1, 'shoudnt be called twice');
                         })
-                        .delay(100)
+                        .delay(25)
                         .subscribe(() => done());
                 }
             };
         }
+    });
+
+    it('should get all cookie value by `.all()`', function (done) {
+        simple.mock(cookie, 'all', () => ({
+            'MyCookie': '321',
+        }));
+        const subject = new Rx.Subject();
+        const cookieDriver = driver(subject);
+        cookieDriver.all().subscribe((allCookies) => {
+            assert.strictEqual(typeof allCookies, 'object');
+            assert.strictEqual(allCookies.MyCookie, '321');
+            done();
+        });
     });
 });
