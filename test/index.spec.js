@@ -1,11 +1,12 @@
-import assert from 'assert'
-import Rx from 'rx'
-import simple from 'simple-mock'
-import cookie from 'cookie_js'
-import {createCookieDriver} from '../src/index'
+import assert from 'assert';
+import Rx from 'rx';
+import simple from 'simple-mock';
+import cookie from 'cookie_js';
+import {createCookieDriver} from '../src/index';
 
 describe('Cycle.js Cookie driver', function() {
-    const EmptyObservable = Rx.Observable.empty();
+    'use strict';
+    const EmptyObservable$ = Rx.Observable.empty();
     var driver = null;
 
     beforeEach(() => {
@@ -17,8 +18,8 @@ describe('Cycle.js Cookie driver', function() {
     });
 
     it('should expose `get` and `all` api', function() {
-        assert.strictEqual(typeof driver(EmptyObservable).all, 'function');
-        assert.strictEqual(typeof driver(EmptyObservable).get, 'function');
+        assert.strictEqual(typeof driver(EmptyObservable$).all, 'function');
+        assert.strictEqual(typeof driver(EmptyObservable$).get, 'function');
     });
 
     it('should set cookie value', function(done) {
@@ -35,15 +36,64 @@ describe('Cycle.js Cookie driver', function() {
         });
     });
 
-    it('should get cookie value', function(done) {
-        simple.mock(cookie, 'get', (key) => {
-            assert.strictEqual(key, 'MyCookie');
-            return '321';
+    describe('should get cookie value', function () {
+        it('simple', function (done) {
+            simple.mock(cookie, 'get', (key) => {
+                assert.strictEqual(key, 'MyCookie');
+                return '321';
+            });
+            const cookieDriver = driver(EmptyObservable$);
+            cookieDriver.get('MyCookie').subscribe((result) => {
+                assert.strictEqual(result, '321');
+                done();
+            });
         });
-        const cookieDriver = driver(EmptyObservable);
-        cookieDriver.get('MyCookie').subscribe((result) => {
-            assert.strictEqual(result, '321');
-            done();
-        })
+
+        it('and it changes', getChangesTestFactory(false));
+        it('and ignore it changes', getChangesTestFactory(true));
+
+        function getChangesTestFactory(onlyStartValue) {
+            return function (done) {
+                var cookieValue      = '321';
+                var cookieGetCounter = 0;
+
+                // delaying for simulate later value set
+                const setNewValue$ = Rx.Observable.just({
+                    key: 'MyCookie',
+                    value: 'new-value'
+                }).delay(50);
+
+                simple.mock(cookie, 'get', (key) => {
+                    assert.strictEqual(key, 'MyCookie');
+                    return cookieValue;
+                });
+                simple.mock(cookie, 'set', (key, value) => {
+                    cookieValue = value;
+                });
+
+                const cookieDriver   = driver(setNewValue$);
+                const cookieChanges$ = cookieDriver.get(
+                    'MyCookie',
+                    onlyStartValue
+                );
+                if (!onlyStartValue) {
+                    cookieChanges$.subscribe(result => {
+                        cookieGetCounter++;
+                        assert.strictEqual(result, cookieValue);
+                        if (cookieGetCounter >= 2) {
+                            done();
+                        }
+                    });
+                } else {
+                    cookieChanges$
+                        .do(result => {
+                            cookieGetCounter++;
+                            assert.strictEqual(cookieGetCounter, 1, 'shoudnt be called twice');
+                        })
+                        .delay(100)
+                        .subscribe(() => done());
+                }
+            };
+        }
     });
 });

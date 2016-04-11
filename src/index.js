@@ -2,6 +2,8 @@ import Rx from 'rx';
 import cookie from 'cookie_js';
 
 export function createCookieDriver({decode = null} = {}) {
+    'use strict';
+
     if (decode) {
         cookie.utils.decode = decode;
     }
@@ -16,7 +18,7 @@ export function createCookieDriver({decode = null} = {}) {
             get: getCookie,
             all: getAllCookies,
         };
-    }
+    };
 
     function handleRemoveCookie(sink$) {
         sink$
@@ -50,7 +52,7 @@ export function createCookieDriver({decode = null} = {}) {
         if (!onlyStartValue) {
             cookieValue$ = cookieValue$
                 .merge(changesSubject$)
-                .filter((name) => name === cookieName)
+                .filter((name) => name === cookieName);
         }
         return cookieValue$.map(
             () => cookie.get(cookieName)

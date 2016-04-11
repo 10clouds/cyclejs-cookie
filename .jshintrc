@@ -1,0 +1,5 @@
+{
+    "strict"        : true,
+    "esnext"        : true,
+    "predef"        : ["describe", "it", "beforeEach", "afterEach"]
+}
