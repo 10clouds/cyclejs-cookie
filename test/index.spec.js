@@ -101,12 +101,26 @@ describe('Cycle.js Cookie driver', function() {
         simple.mock(cookie, 'all', () => ({
             'MyCookie': '321',
         }));
-        const subject = new Rx.Subject();
-        const cookieDriver = driver(subject);
+        const cookieDriver = driver(EmptyObservable$);
         cookieDriver.all().subscribe((allCookies) => {
             assert.strictEqual(typeof allCookies, 'object');
             assert.strictEqual(allCookies.MyCookie, '321');
             done();
         });
+    });
+
+    it('should remove cookie when value set to undefined', function (done) {
+        simple.mock(cookie, 'remove', (key) => {
+            assert.strictEqual(key, 'MyCookie');
+            done();
+        });
+
+        // delaying for simulate later value set
+        const setEmptyValue$ = Rx.Observable.just({
+            key: 'MyCookie',
+            value: undefined
+        }).delay(10);
+
+        const cookieDriver = driver(setEmptyValue$);
     });
 });
