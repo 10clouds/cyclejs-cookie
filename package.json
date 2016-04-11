@@ -1,12 +1,22 @@
 {
   "name": "cyclejs-cookie",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
-    "test": "mocha --compilers js:babel-register test"
+    "test": "mocha --compilers js:babel-register test",
+    "browserify": "browserify src/index.js -t babelify -t browserify-shim --exclude rx --exclude cookie_js --outfile dist/cycle-cookie.js",
+    "uglify": "uglifyjs dist/cycle-cookie.js -o dist/cycle-cookie.min.js",
+    "dist": "npm run browserify && npm run uglify",
+    "precompile-lib": "rm -rf lib/ && mkdir -p lib",
+    "compile-lib": "babel -d lib/ src/",
+    "prepublish": "npm run precompile-lib && npm run compile-lib"
   },
-  "author": "",
+  "browserify-shim": {
+    "rx": "global:Rx",
+    "cookie_js": "global:cookie"
+  },
+  "author": "Wiktor Obrębski <wiktor.obrebski@10clouds.com>",
   "license": "ISC",
   "dependencies": {
     "cookie_js": "^1.1.1",
@@ -14,10 +24,16 @@
   },
   "devDependencies": {
     "@cycle/core": "^6.0.3",
+    "babel-cli": "^6.7.5",
     "babel-preset-es2015": "^6.6.0",
     "babel-preset-stage-0": "^6.5.0",
     "babel-register": "^6.7.2",
+    "babelify": "^7.2.0",
+    "browserify": "^13.0.0",
+    "browserify-shim": "^3.8.12",
+    "istanbul": "^0.4.3",
     "mocha": "^2.4.5",
-    "simple-mock": "^0.7.0"
+    "simple-mock": "^0.7.0",
+    "uglify": "^0.1.5"
   }
 }
