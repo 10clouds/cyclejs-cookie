@@ -1,7 +1,7 @@
 import Rx from 'rx';
 import cookie from 'cookie_js';
 
-export function createCookieDriver({decode = null} = {}) {
+export function makeCookieDriver({decode = null} = {}) {
     'use strict';
 
     if (decode) {

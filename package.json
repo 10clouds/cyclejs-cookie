@@ -1,7 +1,7 @@
 {
   "name": "cyclejs-cookie",
-  "version": "0.0.4",
-  "description": "",
+  "version": "0.0.5",
+  "description": "Cookie Driver for Cycle.js, based on cookie_js",
   "main": "lib/index.js",
   "scripts": {
     "test": "mocha --compilers js:babel-register test",

@@ -2,7 +2,7 @@ import assert from 'assert';
 import Rx from 'rx';
 import simple from 'simple-mock';
 import cookie from 'cookie_js';
-import {createCookieDriver} from '../src/index';
+import {makeCookieDriver} from '../src/index';
 
 describe('Cycle.js Cookie driver', function() {
     'use strict';
@@ -10,7 +10,7 @@ describe('Cycle.js Cookie driver', function() {
     var driver = null;
 
     beforeEach(() => {
-        driver = createCookieDriver();
+        driver = makeCookieDriver();
     });
 
     afterEach(() => {
