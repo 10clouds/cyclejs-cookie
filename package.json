@@ -17,7 +17,7 @@
     "cookie_js": "global:cookie"
   },
   "author": "Wiktor Obrębski <wiktor.obrebski@10clouds.com>",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "cookie_js": "^1.1.1",
     "rx": "^4.1.0"
