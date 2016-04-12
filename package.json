@@ -35,5 +35,10 @@
     "mocha": "^2.4.5",
     "simple-mock": "^0.7.0",
     "uglify": "^0.1.5"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/10clouds/cyclejs-cookie.git"
+  },
+  "bugs": "https://github.com/10clouds/cyclejs-cookie/issues"
 }
