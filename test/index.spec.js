@@ -49,53 +49,37 @@ describe('Cycle.js Cookie driver', function() {
             });
         });
 
-        it('and it changes', getChangesTestFactory(false));
-        it('and ignore it changes', getChangesTestFactory(true));
+        it('and it changes', function (done) {
+            var cookieValue      = '321';
+            var cookieGetCounter = 0;
 
-        function getChangesTestFactory(onlyStartValue) {
-            return function (done) {
-                var cookieValue      = '321';
-                var cookieGetCounter = 0;
+            // delaying for simulate later value set
+            const setNewValue$ = Rx.Observable.just({
+                key: 'MyCookie',
+                value: 'new-value'
+            }).delay(10);
 
-                // delaying for simulate later value set
-                const setNewValue$ = Rx.Observable.just({
-                    key: 'MyCookie',
-                    value: 'new-value'
-                }).delay(10);
+            simple.mock(cookie, 'get', (key) => {
+                assert.strictEqual(key, 'MyCookie');
+                return cookieValue;
+            });
+            simple.mock(cookie, 'set', (key, value) => {
+                cookieValue = value;
+            });
 
-                simple.mock(cookie, 'get', (key) => {
-                    assert.strictEqual(key, 'MyCookie');
-                    return cookieValue;
-                });
-                simple.mock(cookie, 'set', (key, value) => {
-                    cookieValue = value;
-                });
+            const cookieDriver   = driver(setNewValue$);
+            const cookieChanges$ = cookieDriver.get('MyCookie');
 
-                const cookieDriver   = driver(setNewValue$);
-                const cookieChanges$ = cookieDriver.get(
-                    'MyCookie',
-                    onlyStartValue
-                );
-                if (!onlyStartValue) {
-                    cookieChanges$.subscribe(result => {
-                        cookieGetCounter++;
-                        assert.strictEqual(result, cookieValue);
-                        if (cookieGetCounter >= 2) {
-                            done();
-                        }
-                    });
-                } else {
-                    cookieChanges$
-                        .do(result => {
-                            cookieGetCounter++;
-                            assert.strictEqual(cookieGetCounter, 1, 'shoudnt be called twice');
-                        })
-                        .delay(25)
-                        .subscribe(() => done());
+            cookieChanges$.subscribe(result => {
+                cookieGetCounter++;
+                assert.strictEqual(result, cookieValue);
+                if (cookieGetCounter >= 2) {
+                    done();
                 }
-            };
-        }
+            });
+        });
     });
+
 
     it('should get all cookie value by `.all()`', function (done) {
         simple.mock(cookie, 'all', () => ({

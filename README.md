@@ -51,8 +51,8 @@ Cycle.run(main, {
  `$sink` - driver assumes that sink$ is stream of [_cookie setter objects_](#cookie-setter-object). it interprete _cookie setter object_ and set new cookie (or delete if cookie value is undefined).
 
  Returning cookies observables functions object `{get(), all()}`.
- - `get(cookieName, onlyStartValue = false)` - returning stream of cookie `cookieName` changes, initiated by current cookie value. If `onlyStartValue` is set to true, it won't report cookie changes, only initial value.
- - `all(onlyStartValue = false)` - returning stream of all cookies object changes, initiated by starting cookies object. If `onlyStartValue` is set to true, it won't report cookies changes, only initial value.
+ - `get(cookieName)` - returning stream of cookie `cookieName` changes, initiated by current cookie value
+ - `all()` - returning stream of all cookies object changes, initiated by starting cookies object
  
 ## cookie setter object
  Driver assumes following objects on it $sink:

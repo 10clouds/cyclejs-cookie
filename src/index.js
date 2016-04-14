@@ -46,28 +46,20 @@ export function makeCookieDriver({decode = null} = {}) {
         );
     }
 
-    function getCookie(cookieName, onlyStartValue) {
-        var cookieValue$ = Rx.Observable
-                                .just(cookieName);
-        if (!onlyStartValue) {
-            cookieValue$ = cookieValue$
+    function getCookie(cookieName) {
+        return Rx.Observable.just(cookieName)
                 .merge(changesSubject$)
-                .filter((name) => name === cookieName);
-        }
-        return cookieValue$.map(
-            () => cookie.get(cookieName)
-        );
+                .filter((name) => name === cookieName)
+                .map(
+                    () => cookie.get(cookieName)
+                );
     }
 
-    function getAllCookies(onlyStartValue) {
-        var cookiesValue$ = Rx.Observable
-                                .just();
-        if (!onlyStartValue) {
-            cookiesValue$ = cookiesValue$
-                .merge(changesSubject$);
-        }
-        return cookiesValue$.map(
-            () => cookie.all()
-        );
+    function getAllCookies() {
+        return Rx.Observable.just()
+                .merge(changesSubject$)
+                .map(
+                    () => cookie.all()
+                );
     }
 }
