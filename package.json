@@ -13,14 +13,14 @@
     "prepublish": "npm run precompile-lib && npm run compile-lib"
   },
   "browserify-shim": {
-    "rx": "global:Rx",
+    "xstream": "global:xstream",
     "cookie_js": "global:cookie"
   },
   "author": "Wiktor Obrębski <wiktor.obrebski@10clouds.com>",
   "license": "MIT",
   "dependencies": {
     "cookie_js": "^1.1.1",
-    "rx": "^4.1.0"
+    "xstream": "^5.3.2"
   },
   "devDependencies": {
     "@cycle/core": "^6.0.3",

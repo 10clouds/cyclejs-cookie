@@ -1,4 +1,4 @@
-import Rx from 'rx';
+import xs from 'xstream';
 import cookie from 'cookie_js';
 
 export function makeCookieDriver({decode = null} = {}) {
@@ -7,7 +7,9 @@ export function makeCookieDriver({decode = null} = {}) {
     if (decode) {
         cookie.utils.decode = decode;
     }
-    var changesSubject$ = new Rx.Subject();
+
+    const changesSubject$ = new xs.never();
+    const noop = () => undefined;
 
     return function cookieDriver(sink$) {
         handleRemoveCookie(sink$);
@@ -23,32 +25,38 @@ export function makeCookieDriver({decode = null} = {}) {
     function handleRemoveCookie(sink$) {
         sink$
             .filter(cookieSettings => cookieSettings.value === undefined)
-            .subscribe(cookieSettings => cookie.remove(cookieSettings.key));
+            .addListener({
+                next: cookieSettings => cookie.remove(cookieSettings.key),
+                error: noop,
+                complete: noop,
+            });
     }
 
     function handleSetCookie(sink$) {
         sink$
             .filter(cookieSettings => cookieSettings.value !== undefined)
-            .subscribe(cookieSettings =>
-                cookie.set(
-                    cookieSettings.key,
-                    cookieSettings.value,
-                    cookieSettings.settings
-                )
-            );
+            .addListener({
+                next: cookieSettings =>
+                    cookie.set(
+                        cookieSettings.key,
+                        cookieSettings.value,
+                        cookieSettings.settings
+                    ),
+                error: noop,
+                complete: noop,
+            });
     }
 
     function handleCookieUpdateSubject(sink$) {
-        sink$.subscribe(
-            (val) => changesSubject$.onNext(val.key),
-            (err) => changesSubject$.onError(err),
-            () => changesSubject$.onCompleted()
-        );
+        sink$.addListener({
+            next: (val) => changesSubject$.shamefullySendNext(val.key),
+            error: (err) => changesSubject$.shamefullySendError(err),
+            complete: () => changesSubject$.shamefullySendComplete()
+        });
     }
 
     function getCookie(cookieName) {
-        return Rx.Observable.just(cookieName)
-                .merge(changesSubject$)
+        return xs.merge(xs.of(cookieName), changesSubject$)
                 .filter((name) => name === cookieName)
                 .map(
                     () => cookie.get(cookieName)
@@ -56,8 +64,7 @@ export function makeCookieDriver({decode = null} = {}) {
     }
 
     function getAllCookies() {
-        return Rx.Observable.just()
-                .merge(changesSubject$)
+        return xs.merge(xs.of(null), changesSubject$)
                 .map(
                     () => cookie.all()
                 );
