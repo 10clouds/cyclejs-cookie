@@ -5,22 +5,28 @@
 
 ## Install
 ```shell
-$ npm install --save cyclejs-cookie
+$ npm install --save cyclejs-cookie xstream
 ```
 
 ## Usage
 
 ``` javascript
-import Cycle from '@cycle/core';
+import xs from 'xstream';
+import {run} from '@cycle/xstream-run';
 import {makeCookieDriver} from 'cyclejs-cookie';
 
 function main({cookie}) {
-    const cookieChangeSource$ = Rx.Observable.interval(1000);
+    const cookieChangeSource$ = xs.periodic(1000);
 
     const cookieValue$ = cookie.get('MyCookie');
-    cookieValue$.subscribe(
-        (value) => console.log(`MyCookie current value is ${value}`)
-    );
+
+    // just for print debug
+    const noop = () => undefined;
+    cookieValue$.debug('cookie current value').addListener({
+        next: noop,
+        error: noop,
+        complete: noop,
+    });
 
     return {
         cookie: cookieChangeSource$.map((counter) => ({
@@ -33,7 +39,7 @@ function main({cookie}) {
     };
 };
 
-Cycle.run(main, {
+run(main, {
     cookie: makeCookieDriver()
 });
 ```
