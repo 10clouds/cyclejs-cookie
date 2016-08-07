@@ -5,11 +5,11 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.createCookieDriver = createCookieDriver;
+exports.makeCookieDriver = makeCookieDriver;
 
-var _rx = (typeof window !== "undefined" ? window['Rx'] : typeof global !== "undefined" ? global['Rx'] : null);
+var _xstream = (typeof window !== "undefined" ? window['xstream'] : typeof global !== "undefined" ? global['xstream'] : null);
 
-var _rx2 = _interopRequireDefault(_rx);
+var _xstream2 = _interopRequireDefault(_xstream);
 
 var _cookie_js = (typeof window !== "undefined" ? window['cookie'] : typeof global !== "undefined" ? global['cookie'] : null);
 
@@ -17,7 +17,7 @@ var _cookie_js2 = _interopRequireDefault(_cookie_js);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function createCookieDriver() {
+function makeCookieDriver() {
     'use strict';
 
     var _ref = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
@@ -27,7 +27,11 @@ function createCookieDriver() {
     if (decode) {
         _cookie_js2.default.utils.decode = decode;
     }
-    var changesSubject$ = new _rx2.default.Subject();
+
+    var changesSubject$ = new _xstream2.default.never();
+    var noop = function noop() {
+        return undefined;
+    };
 
     return function cookieDriver(sink$) {
         handleRemoveCookie(sink$);
@@ -43,47 +47,51 @@ function createCookieDriver() {
     function handleRemoveCookie(sink$) {
         sink$.filter(function (cookieSettings) {
             return cookieSettings.value === undefined;
-        }).subscribe(function (cookieSettings) {
-            return _cookie_js2.default.remove(cookieSettings.key);
+        }).addListener({
+            next: function next(cookieSettings) {
+                return _cookie_js2.default.remove(cookieSettings.key);
+            },
+            error: noop,
+            complete: noop
         });
     }
 
     function handleSetCookie(sink$) {
         sink$.filter(function (cookieSettings) {
             return cookieSettings.value !== undefined;
-        }).subscribe(function (cookieSettings) {
-            return _cookie_js2.default.set(cookieSettings.key, cookieSettings.value, cookieSettings.settings);
+        }).addListener({
+            next: function next(cookieSettings) {
+                return _cookie_js2.default.set(cookieSettings.key, cookieSettings.value, cookieSettings.settings);
+            },
+            error: noop,
+            complete: noop
         });
     }
 
     function handleCookieUpdateSubject(sink$) {
-        sink$.subscribe(function (val) {
-            return changesSubject$.onNext(val.key);
-        }, function (err) {
-            return changesSubject$.onError(err);
-        }, function () {
-            return changesSubject$.onCompleted();
+        sink$.addListener({
+            next: function next(val) {
+                return changesSubject$.shamefullySendNext(val.key);
+            },
+            error: function error(err) {
+                return changesSubject$.shamefullySendError(err);
+            },
+            complete: function complete() {
+                return changesSubject$.shamefullySendComplete();
+            }
         });
     }
 
-    function getCookie(cookieName, onlyStartValue) {
-        var cookieValue$ = _rx2.default.Observable.just(cookieName);
-        if (!onlyStartValue) {
-            cookieValue$ = cookieValue$.merge(changesSubject$).filter(function (name) {
-                return name === cookieName;
-            });
-        }
-        return cookieValue$.map(function () {
+    function getCookie(cookieName) {
+        return _xstream2.default.merge(_xstream2.default.of(cookieName), changesSubject$).filter(function (name) {
+            return name === cookieName;
+        }).map(function () {
             return _cookie_js2.default.get(cookieName);
         });
     }
 
-    function getAllCookies(onlyStartValue) {
-        var cookiesValue$ = _rx2.default.Observable.just();
-        if (!onlyStartValue) {
-            cookiesValue$ = cookiesValue$.merge(changesSubject$);
-        }
-        return cookiesValue$.map(function () {
+    function getAllCookies() {
+        return _xstream2.default.merge(_xstream2.default.of(null), changesSubject$).map(function () {
             return _cookie_js2.default.all();
         });
     }

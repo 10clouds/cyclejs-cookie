@@ -1,13 +1,15 @@
 import assert from 'assert';
-import Rx from 'rx';
+import xs from 'xstream';
+import delay from 'xstream/extra/delay'
 import simple from 'simple-mock';
 import cookie from 'cookie_js';
 import {makeCookieDriver} from '../src/index';
 
 describe('Cycle.js Cookie driver', function() {
     'use strict';
-    const EmptyObservable$ = Rx.Observable.empty();
+    const EmptyObservable$ = xs.empty();
     var driver = null;
+    const noop = () => undefined;
 
     beforeEach(() => {
         driver = makeCookieDriver();
@@ -28,9 +30,9 @@ describe('Cycle.js Cookie driver', function() {
             assert.strictEqual(val, '321');
             done();
         });
-        const subject = new Rx.Subject();
+        const subject = new xs.never();
         const cookieDriver = driver(subject);
-        subject.onNext({
+        subject.shamefullySendNext({
             'key': 'MyCookie',
             'value': '321'
         });
@@ -43,9 +45,13 @@ describe('Cycle.js Cookie driver', function() {
                 return '321';
             });
             const cookieDriver = driver(EmptyObservable$);
-            cookieDriver.get('MyCookie').subscribe((result) => {
-                assert.strictEqual(result, '321');
-                done();
+            cookieDriver.get('MyCookie').addListener({
+                next: (result) => {
+                    assert.strictEqual(result, '321');
+                    done();
+                },
+                error: noop,
+                complete: noop
             });
         });
 
@@ -54,10 +60,10 @@ describe('Cycle.js Cookie driver', function() {
             var cookieGetCounter = 0;
 
             // delaying for simulate later value set
-            const setNewValue$ = Rx.Observable.just({
+            const setNewValue$ = xs.periodic(10).take(1).map(() => ({
                 key: 'MyCookie',
                 value: 'new-value'
-            }).delay(10);
+            }));
 
             simple.mock(cookie, 'get', (key) => {
                 assert.strictEqual(key, 'MyCookie');
@@ -70,12 +76,16 @@ describe('Cycle.js Cookie driver', function() {
             const cookieDriver   = driver(setNewValue$);
             const cookieChanges$ = cookieDriver.get('MyCookie');
 
-            cookieChanges$.subscribe(result => {
-                cookieGetCounter++;
-                assert.strictEqual(result, cookieValue);
-                if (cookieGetCounter >= 2) {
-                    done();
-                }
+            cookieChanges$.addListener({
+                next: result => {
+                    cookieGetCounter++;
+                    assert.strictEqual(result, cookieValue);
+                    if (cookieGetCounter >= 2) {
+                        done();
+                    }
+                },
+                error: noop,
+                complete: noop
             });
         });
     });
@@ -86,10 +96,14 @@ describe('Cycle.js Cookie driver', function() {
             'MyCookie': '321',
         }));
         const cookieDriver = driver(EmptyObservable$);
-        cookieDriver.all().subscribe((allCookies) => {
-            assert.strictEqual(typeof allCookies, 'object');
-            assert.strictEqual(allCookies.MyCookie, '321');
-            done();
+        cookieDriver.all().addListener({
+            next: (allCookies) => {
+                assert.strictEqual(typeof allCookies, 'object');
+                assert.strictEqual(allCookies.MyCookie, '321');
+                done();
+            },
+            error: (noop),
+            complete: noop
         });
     });
 
@@ -100,10 +114,10 @@ describe('Cycle.js Cookie driver', function() {
         });
 
         // delaying for simulate later value set
-        const setEmptyValue$ = Rx.Observable.just({
+        const setEmptyValue$ = xs.periodic(10).take(1).map(() => ({
             key: 'MyCookie',
             value: undefined
-        }).delay(10);
+        }));
 
         const cookieDriver = driver(setEmptyValue$);
     });
