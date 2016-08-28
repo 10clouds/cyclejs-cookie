@@ -9,7 +9,9 @@ export function makeCookieDriver({decode = null} = {}) {
     }
 
     const changesSubject$ = new xs.never();
+
     const noop = () => undefined;
+    const err = console.error.bind(console);
 
     return function cookieDriver(sink$) {
         handleRemoveCookie(sink$);
@@ -27,7 +29,7 @@ export function makeCookieDriver({decode = null} = {}) {
             .filter(cookieSettings => cookieSettings.value === undefined)
             .addListener({
                 next: cookieSettings => cookie.remove(cookieSettings.key),
-                error: noop,
+                error: err,
                 complete: noop,
             });
     }
@@ -42,7 +44,7 @@ export function makeCookieDriver({decode = null} = {}) {
                         cookieSettings.value,
                         cookieSettings.settings
                     ),
-                error: noop,
+                error: err,
                 complete: noop,
             });
     }

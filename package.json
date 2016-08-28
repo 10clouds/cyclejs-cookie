@@ -1,11 +1,11 @@
 {
   "name": "cyclejs-cookie",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "Cookie Driver for Cycle.js, based on cookie_js",
   "main": "lib/index.js",
   "scripts": {
     "test": "mocha --compilers js:babel-register test",
-    "browserify": "browserify src/index.js -t babelify -t browserify-shim --exclude rx --exclude cookie_js --outfile dist/cycle-cookie.js",
+    "browserify": "browserify src/index.js -t babelify -t browserify-shim --exclude rx --outfile dist/cycle-cookie.js",
     "uglify": "uglifyjs dist/cycle-cookie.js -o dist/cycle-cookie.min.js",
     "dist": "npm run browserify && npm run uglify",
     "precompile-lib": "rm -rf lib/ && mkdir -p lib",
@@ -13,8 +13,7 @@
     "prepublish": "npm run precompile-lib && npm run compile-lib"
   },
   "browserify-shim": {
-    "xstream": "global:xstream",
-    "cookie_js": "global:cookie"
+    "xstream": "global:xstream"
   },
   "author": "Wiktor Obrębski <wiktor.obrebski@10clouds.com>",
   "license": "MIT",
