@@ -1,5 +1,5 @@
 import xs from 'xstream';
-import cookie from 'cookie_js';
+import {cookie} from 'cookie_js';
 
 export function makeCookieDriver({decode = null} = {}) {
     'use strict';

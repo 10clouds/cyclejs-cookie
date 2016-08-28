@@ -2,7 +2,7 @@ import assert from 'assert';
 import xs from 'xstream';
 import delay from 'xstream/extra/delay'
 import simple from 'simple-mock';
-import cookie from 'cookie_js';
+import {cookie} from 'cookie_js';
 import {makeCookieDriver} from '../src/index';
 
 describe('Cycle.js Cookie driver', function() {
